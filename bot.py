@@ -71,15 +71,15 @@ for stock in stocks:
 
         if distance <= 3:
 
-    if close > sma44:
-        support.append(
-            f"{stock.replace('.NS','')} ({round(distance,2)}% above SMA44)"
-        )
+            if close > sma44:
+                support.append(
+                    f"{stock.replace('.NS','')} ({round(distance,2)}% above SMA44)"
+                )
 
-    elif close < sma44:
-        resistance.append(
-            f"{stock.replace('.NS','')} ({round(distance,2)}% below SMA44)"
-        )
+            elif close < sma44:
+                resistance.append(
+                    f"{stock.replace('.NS','')} ({round(distance,2)}% below SMA44)"
+                )
 
     except:
         pass
