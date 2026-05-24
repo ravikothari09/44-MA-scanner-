@@ -1,0 +1,27 @@
+name: Nifty SMA Scanner
+
+on:
+  schedule:
+    - cron: '35 12 * * 1-5'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install Packages
+      run: pip install -r requirements.txt
+
+    - name: Run Bot
+      run: python bot.py
