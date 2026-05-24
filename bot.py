@@ -1,8 +1,16 @@
 import yfinance as yf
 import requests
 
+# =========================
+# TELEGRAM SETTINGS
+# =========================
+
 BOT_TOKEN = "8856849594:AAFxxH1JNrf5ysRYOFUA6dfYg7b4FDFMZL8"
 CHAT_ID = "454302134"
+
+# =========================
+# NIFTY 100 STOCKS
+# =========================
 
 stocks = [
 
@@ -24,7 +32,7 @@ stocks = [
 'HCLTECH.NS','HDFCBANK.NS','HDFCLIFE.NS',
 'HEROMOTOCO.NS','HINDALCO.NS','HINDUNILVR.NS',
 'ICICIBANK.NS','ICICIGI.NS','ICICIPRULI.NS',
-'IDEA.NS','IDFCFIRSTB.NS','INDHOTEL.NS',
+'IDFCFIRSTB.NS','INDHOTEL.NS',
 'INDIGO.NS','INDUSINDBK.NS','INFY.NS',
 'IOC.NS','IRCTC.NS','ITC.NS',
 'JINDALSTEL.NS','JSWSTEEL.NS','JUBLFOOD.NS',
@@ -44,73 +52,107 @@ stocks = [
 'TORNTPHARM.NS','TRENT.NS','TVSMOTOR.NS',
 'ULTRACEMCO.NS','UPL.NS','VEDL.NS',
 'WIPRO.NS','ZOMATO.NS'
+
 ]
+
+# =========================
+# RESULT LISTS
+# =========================
 
 support = []
 resistance = []
+
+# =========================
+# SCAN STOCKS
+# =========================
 
 for stock in stocks:
 
     try:
 
+        print(f"Checking {stock}")
+
         df = yf.download(
             stock,
             period="6mo",
             interval="1d",
+            auto_adjust=True,
             progress=False
         )
 
-        if len(df) < 50:
+        if df.empty:
             continue
 
+        # 44 SMA
         df["SMA44"] = df["Close"].rolling(window=44).mean()
 
-        latest = df.iloc[-1]
+        latest_close = float(df["Close"].iloc[-1])
+        latest_sma = float(df["SMA44"].iloc[-1])
 
-        close = float(latest["Close"])
-        sma44 = float(latest["SMA44"])
+        # Skip invalid SMA
+        if latest_sma <= 0:
+            continue
 
-        distance = abs(close - sma44) / sma44 * 100
+        # Distance from SMA
+        distance = abs(latest_close - latest_sma) / latest_sma * 100
 
+        stock_name = stock.replace(".NS", "")
+
+        # Near SMA condition
         if distance <= 8:
 
-            if close > sma44:
+            # Above SMA = support
+            if latest_close >= latest_sma:
 
                 support.append(
-                    f"{stock.replace('.NS','')} ({round(distance,2)}%)"
+                    f"{stock_name} → {round(distance,2)}% above SMA44"
                 )
 
+            # Below SMA = resistance
             else:
 
                 resistance.append(
-                    f"{stock.replace('.NS','')} ({round(distance,2)}%)"
+                    f"{stock_name} → {round(distance,2)}% below SMA44"
                 )
 
     except Exception as e:
-        print(stock, e)
 
-message = "📈 NIFTY SMA44 SCAN\n\n"
+        print(f"ERROR in {stock}: {e}")
 
-message += "🟢 SUPPORT ZONE\n"
+# =========================
+# TELEGRAM MESSAGE
+# =========================
+
+message = "📈 NIFTY 100 SMA44 SCAN\n\n"
+
+message += "🟢 SUPPORT AREA\n"
 
 if support:
     message += "\n".join(support)
 else:
     message += "No Stocks"
 
-message += "\n\n🔴 RESISTANCE ZONE\n"
+message += "\n\n🔴 RESISTANCE AREA\n"
 
 if resistance:
     message += "\n".join(resistance)
 else:
     message += "No Stocks"
 
-url = f"https://api.telegram.org/bot{8856849594:AAFxxH1JNrf5ysRYOFUA6dfYg7b4FDFMZL8}/sendMessage"
+print(message)
+
+# =========================
+# SEND TELEGRAM MESSAGE
+# =========================
+
+url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
 requests.post(
     url,
     data={
-        "chat_id": 454302134,
+        "chat_id": CHAT_ID,
         "text": message
     }
 )
+
+print("Message sent successfully!")
