@@ -105,12 +105,12 @@ if resistance:
 else:
     message += "No Stocks"
 
-url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+url = f"https://api.telegram.org/bot{8856849594:AAFxxH1JNrf5ysRYOFUA6dfYg7b4FDFMZL8}/sendMessage"
 
 requests.post(
     url,
     data={
-        "chat_id": CHAT_ID,
+        "chat_id": 454302134,
         "text": message
     }
 )
