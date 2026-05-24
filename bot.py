@@ -1,11 +1,11 @@
 import yfinance as yf
-import pandas as pd
 import requests
 
 BOT_TOKEN = "8856849594:AAFxxH1JNrf5ysRYOFUA6dfYg7b4FDFMZL8"
 CHAT_ID = "454302134"
 
 stocks = [
+
 'ABB.NS','ABCAPITAL.NS','ABFRL.NS','ACC.NS',
 'ADANIENT.NS','ADANIGREEN.NS','ADANIPORTS.NS',
 'ALKEM.NS','AMBUJACEM.NS','APOLLOHOSP.NS',
@@ -36,7 +36,7 @@ stocks = [
 'PAGEIND.NS','PAYTM.NS','PEL.NS',
 'PETRONET.NS','PIDILITIND.NS','PNB.NS',
 'POWERGRID.NS','RECLTD.NS','RELIANCE.NS',
-'SAIL.NS','SBI.NS','SBICARD.NS',
+'SAIL.NS','SBIN.NS','SBICARD.NS',
 'SBILIFE.NS','SHREECEM.NS','SHRIRAMFIN.NS',
 'SIEMENS.NS','SUNPHARMA.NS','TATACONSUM.NS',
 'TATAMOTORS.NS','TATAPOWER.NS','TATASTEEL.NS',
@@ -45,6 +45,7 @@ stocks = [
 'ULTRACEMCO.NS','UPL.NS','VEDL.NS',
 'WIPRO.NS','ZOMATO.NS'
 ]
+
 support = []
 resistance = []
 
@@ -52,37 +53,41 @@ for stock in stocks:
 
     try:
 
-        df = yf.download(stock, period="4mo", interval="1d")
+        df = yf.download(
+            stock,
+            period="6mo",
+            interval="1d",
+            progress=False
+        )
 
-        df['SMA44'] = df['Close'].rolling(44).mean()
+        if len(df) < 50:
+            continue
+
+        df["SMA44"] = df["Close"].rolling(window=44).mean()
 
         latest = df.iloc[-1]
 
-        close = latest['Close']
-        open_price = latest['Open']
-        high = latest['High']
-        low = latest['Low']
-        sma44 = latest['SMA44']
+        close = float(latest["Close"])
+        sma44 = float(latest["SMA44"])
 
         distance = abs(close - sma44) / sma44 * 100
 
-        bullish = close > open_price
-        bearish = close < open_price
-
         if distance <= 8:
 
-            if close >= sma44:
+            if close > sma44:
+
                 support.append(
-                    f"{stock.replace('.NS','')} → {round(distance,2)}% near SMA44"
+                    f"{stock.replace('.NS','')} ({round(distance,2)}%)"
                 )
 
             else:
+
                 resistance.append(
-                    f"{stock.replace('.NS','')} → {round(distance,2)}% near SMA44"
+                    f"{stock.replace('.NS','')} ({round(distance,2)}%)"
                 )
 
-    except:
-        pass
+    except Exception as e:
+        print(stock, e)
 
 message = "📈 NIFTY SMA44 SCAN\n\n"
 
@@ -102,7 +107,10 @@ else:
 
 url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
 
-requests.post(url, data={
-    "chat_id": CHAT_ID,
-    "text": message
-})
+requests.post(
+    url,
+    data={
+        "chat_id": CHAT_ID,
+        "text": message
+    }
+)
