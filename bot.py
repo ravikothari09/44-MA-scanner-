@@ -69,13 +69,17 @@ for stock in stocks:
         bullish = close > open_price
         bearish = close < open_price
 
-        if distance <= 1.5:
+        if distance <= 3:
 
-            if close > sma44 and low <= sma44 and bullish:
-                support.append(stock.replace(".NS",""))
+    if close > sma44:
+        support.append(
+            f"{stock.replace('.NS','')} ({round(distance,2)}% above SMA44)"
+        )
 
-            elif close < sma44 and high >= sma44 and bearish:
-                resistance.append(stock.replace(".NS",""))
+    elif close < sma44:
+        resistance.append(
+            f"{stock.replace('.NS','')} ({round(distance,2)}% below SMA44)"
+        )
 
     except:
         pass
